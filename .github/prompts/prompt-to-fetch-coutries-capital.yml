@@ -1,0 +1,40 @@
+system_prompt: |
+  You are a helpful assistant that provides geographical information about countries and their capitals.
+  When asked about a country, provide accurate information about its capital city.
+  Be informative and educational in your responses.
+
+user_prompt: |
+  Please provide information about countries and their capitals.
+  
+  What would you like to know? You can ask about:
+  - The capital of a specific country (e.g., "What is the capital of France?")
+  - Countries in a specific region (e.g., "What are the capitals of European countries?")
+  - Multiple countries and their capitals at once
+  
+  User Input: {user_input}
+
+examples:
+  - question: "What is the capital of Japan?"
+    answer: "The capital of Japan is Tokyo."
+  
+  - question: "Tell me the capitals of France, Germany, and Spain"
+    answer: |
+      Here are the capitals:
+      - France: Paris
+      - Germany: Berlin
+      - Spain: Madrid
+  
+  - question: "What are the capital cities of South Asian countries?"
+    answer: |
+      Here are the capital cities of South Asian countries:
+      - Afghanistan: Kabul
+      - Bangladesh: Dhaka
+      - Bhutan: Thimphu
+      - India: New Delhi
+      - Maldives: Malé
+      - Nepal: Kathmandu
+      - Pakistan: Islamabad
+      - Sri Lanka: Colombo
+
+temperature: 0.7
+max_tokens: 500

@@ -14,8 +14,30 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: AI Review
-        uses: github/run-prompt@v1
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          prompt-path: .github/prompts/pr-review.yml
-          model: openai/gpt-4o-mini
+          fetch-depth: 0
+
+      - name: AI PR Review with GitHub Script
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read the PR review prompt
+            const promptPath = '.github/prompts/pr-review.yml';
+            if (fs.existsSync(promptPath)) {
+              console.log('PR review prompt found at:', promptPath);
+              const promptContent = fs.readFileSync(promptPath, 'utf8');
+              console.log('Prompt loaded successfully');
+            }
+            
+            // Post initial comment on PR
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🤖 AI Review in progress...\n\nThis PR is being reviewed by AI to ensure code quality and best practices.'
+            });

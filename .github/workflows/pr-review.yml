@@ -1,22 +1,37 @@
-name: AI Pull Request Review
-description: >
-  Analyze pull request changes for code quality, documentation completeness,
-  and potential security issues (SAST).
+name: AI PR Review
 
-input:
-  - role: system
-    content: |
-      You are an AI code reviewer. Your tasks:
-      1. Summarize the purpose of the PR.
-      2. Identify missing documentation or unclear code.
-      3. Suggest improvements in readability, maintainability, and style.
-      4. Perform a lightweight static analysis (SAST):
-         - Look for hardcoded secrets, credentials, or API keys.
-         - Flag unsafe functions or insecure patterns (e.g., eval, exec, SQL injection risks).
-         - Highlight missing input validation or error handling.
-      5. Provide actionable recommendations in clear bullet points.
+on:
+  pull_request:
+    types: [opened, synchronize]
 
-  - role: user
-    content: |
-      Review the following pull request diff and provide feedback:
-      {{ diff }}
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      models: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run AI PR Review
+        id: ai_review
+        uses: github/run-prompt@v1
+        with:
+          prompt-path: .github/prompts/pr-review.yml
+          model: openai/gpt-4o-mini
+
+      - name: Post AI Review Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = core.getOutput("result");
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🤖 AI Review Feedback:\n\n${output}`
+            });

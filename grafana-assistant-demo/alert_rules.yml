@@ -1,0 +1,90 @@
+groups:
+  - name: system_alerts
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "High CPU usage detected on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current value: {{ $value }}%)"
+          
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+        annotations:
+          summary: "High memory usage detected on {{ $labels.instance }}"
+          description: "Memory usage is above 85% (current value: {{ $value }}%)"
+          
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 90
+        for: 10m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "Disk usage is above 90% on {{ $labels.mountpoint }} (current value: {{ $value }}%)"
+          
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute"
+
+  - name: api_alerts
+    interval: 30s
+    rules:
+      - alert: HighAPIErrorRate
+        expr: (sum(rate(http_requests_total{job="demo-api-kubernetes",code=~"5.."}[5m])) / sum(rate(http_requests_total{job="demo-api-kubernetes"}[5m]))) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: demo-api
+        annotations:
+          summary: "High error rate on API service"
+          description: "API error rate is above 5% (current value: {{ $value | humanize }}%)"
+          
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="demo-api-kubernetes"}[5m])) by (le)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: demo-api
+        annotations:
+          summary: "High API latency detected"
+          description: "P95 latency is above 500ms (current value: {{ $value | humanize }}s)"
+          
+      - alert: APIServiceCPUHigh
+        expr: sum(rate(process_cpu_seconds_total{job="demo-api-kubernetes"}[5m])) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: demo-api
+        annotations:
+          summary: "High CPU usage on API service"
+          description: "API service CPU usage is above 80% (current value: {{ $value | humanize }}%)"
+          
+      - alert: LowRequestRate
+        expr: sum(rate(http_requests_total{job="demo-api-kubernetes"}[5m])) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          team: backend
+          service: demo-api
+        annotations:
+          summary: "Very low request rate on API service"
+          description: "API is receiving fewer than 6 requests per minute (current: {{ $value | humanize }} req/s)"

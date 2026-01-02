@@ -1,0 +1,96 @@
+# Test Pods with Various Issues for K8sGPT Analysis
+
+---
+# Pod 1: Image Pull Error - Invalid image name
+apiVersion: v1
+kind: Pod
+metadata:
+  name: broken-image-pod
+  namespace: default
+  labels:
+    app: test
+    issue: image-pull-error
+spec:
+  containers:
+  - name: app
+    image: nginx:nonexistent-tag-12345
+    ports:
+    - containerPort: 80
+
+---
+# Pod 2: CrashLoopBackOff - Application exits immediately
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop-pod
+  namespace: default
+  labels:
+    app: test
+    issue: crashloop
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "exit 1"]
+
+---
+# Pod 3: Resource Limits - OOMKilled scenario
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oom-pod
+  namespace: default
+  labels:
+    app: test
+    issue: oom
+spec:
+  containers:
+  - name: memory-hog
+    image: polinux/stress
+    resources:
+      limits:
+        memory: "50Mi"
+      requests:
+        memory: "50Mi"
+    command: ["stress"]
+    args: ["--vm", "1", "--vm-bytes", "250M", "--vm-hang", "1"]
+
+---
+# Pod 4: Pending - Non-existent PVC
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pending-pod
+  namespace: default
+  labels:
+    app: test
+    issue: pending
+spec:
+  containers:
+  - name: app
+    image: nginx
+    volumeMounts:
+    - name: data
+      mountPath: /data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: non-existent-pvc
+
+---
+# Pod 5: Configuration Error - Invalid environment variable reference
+apiVersion: v1
+kind: Pod
+metadata:
+  name: config-error-pod
+  namespace: default
+  labels:
+    app: test
+    issue: config-error
+spec:
+  containers:
+  - name: app
+    image: nginx
+    envFrom:
+    - configMapRef:
+        name: non-existent-configmap

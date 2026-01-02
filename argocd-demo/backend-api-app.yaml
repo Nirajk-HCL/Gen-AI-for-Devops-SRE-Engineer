@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-api
+  namespace: argocd
+  labels:
+    project: production
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: kustomize-guestbook
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
+    syncOptions:
+    - CreateNamespace=true

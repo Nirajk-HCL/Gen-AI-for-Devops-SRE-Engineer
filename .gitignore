@@ -1,0 +1,8 @@
+﻿# Ignore large binary files
+k8sgpt/*.exe
+terraform-demo/*.exe
+*.vsix
+# Ignore large binary files
+k8sgpt/*.exe
+terraform-demo/*.exe
+*.vsix

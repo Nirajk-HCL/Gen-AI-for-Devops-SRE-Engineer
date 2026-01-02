@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "myservice.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "myservice.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "myservice.name" . }}
+    spec:
+      containers:
+        - name: myservice
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10

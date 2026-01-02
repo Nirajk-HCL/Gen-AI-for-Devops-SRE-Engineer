@@ -1,0 +1,600 @@
+{
+    "title":  "API SLO Dashboard - Latency \u0026 Availability",
+    "tags":  [
+                 "slo",
+                 "sli",
+                 "api",
+                 "production"
+             ],
+    "timezone":  "browser",
+    "schemaVersion":  38,
+    "version":  1,
+    "refresh":  "30s",
+    "time":  {
+                 "from":  "now-7d",
+                 "to":  "now"
+             },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "stat",
+                       "title":  "Current SLO Compliance (Availability)",
+                       "description":  "Target: 99.9% | Error Budget: 0.1%",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  6,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(1 - (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h])))) * 100",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  3,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  99.5,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  99.9,
+                                                                                                 "color":  "green"
+                                                                                             }
+                                                                                         ]
+                                                                           },
+                                                            "mappings":  [
+
+                                                                         ]
+                                                        }
+                                       },
+                       "options":  {
+                                       "colorMode":  "value",
+                                       "graphMode":  "area",
+                                       "textMode":  "value_and_name"
+                                   }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "stat",
+                       "title":  "Error Budget Remaining (%)",
+                       "description":  "Remaining error budget for 7-day window",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  6,
+                                       "x":  6,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "((0.001 - (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h])))) / 0.001) * 100",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  1,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  25,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  50,
+                                                                                                 "color":  "green"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       },
+                       "options":  {
+                                       "colorMode":  "value",
+                                       "graphMode":  "area",
+                                       "textMode":  "value_and_name"
+                                   }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "gauge",
+                       "title":  "P95 Latency SLO",
+                       "description":  "Target: \u003c 500ms",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  6,
+                                       "x":  12,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "min":  0,
+                                                            "max":  1000,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  400,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  500,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       },
+                       "options":  {
+                                       "showThresholdLabels":  true,
+                                       "showThresholdMarkers":  true
+                                   }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "gauge",
+                       "title":  "P99 Latency SLO",
+                       "description":  "Target: \u003c 1000ms",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  6,
+                                       "x":  18,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "min":  0,
+                                                            "max":  2000,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  800,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1000,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       },
+                       "options":  {
+                                       "showThresholdLabels":  true,
+                                       "showThresholdMarkers":  true
+                                   }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "timeseries",
+                       "title":  "7-Day Availability Trend",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  6
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(1 - (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h])))) * 100",
+                                           "legendFormat":  "Availability %",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "min":  99.5,
+                                                            "max":  100,
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  2,
+                                                                           "fillOpacity":  10
+                                                                       }
+                                                        },
+                                           "overrides":  [
+                                                             {
+                                                                 "matcher":  {
+                                                                                 "id":  "byName",
+                                                                                 "options":  "Availability %"
+                                                                             },
+                                                                 "properties":  [
+                                                                                    {
+                                                                                        "id":  "custom.lineInterpolation",
+                                                                                        "value":  "smooth"
+                                                                                    }
+                                                                                ]
+                                                             }
+                                                         ]
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "bottom"
+                                                  }
+                                   }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "timeseries",
+                       "title":  "Error Budget Burn Rate",
+                       "description":  "How fast are we consuming error budget?",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  6
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h]))) / 0.001",
+                                           "legendFormat":  "1h Burn Rate (1.0 = normal)",
+                                           "refId":  "A"
+                                       },
+                                       {
+                                           "expr":  "(sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[6h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[6h]))) / 0.001",
+                                           "legendFormat":  "6h Burn Rate",
+                                           "refId":  "B"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  2,
+                                                                           "fillOpacity":  10
+                                                                       }
+                                                        }
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "bottom"
+                                                  }
+                                   }
+                   },
+                   {
+                       "id":  7,
+                       "type":  "timeseries",
+                       "title":  "P95 Latency Trend (7 days)",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  14
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "legendFormat":  "P95 Latency",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  2,
+                                                                           "fillOpacity":  15,
+                                                                           "gradientMode":  "scheme"
+                                                                       },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  400,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  500,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "bottom"
+                                                  }
+                                   }
+                   },
+                   {
+                       "id":  8,
+                       "type":  "table",
+                       "title":  "SLO Summary",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  14
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(1 - (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h])))) * 100",
+                                           "refId":  "A",
+                                           "format":  "table",
+                                           "instant":  true
+                                       }
+                                   ],
+                       "transformations":  [
+                                               {
+                                                   "id":  "organize",
+                                                   "options":  {
+                                                                   "renameByName":  {
+                                                                                        "Value":  "Availability %"
+                                                                                    }
+                                                               }
+                                               }
+                                           ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  3,
+                                                            "custom":  {
+                                                                           "align":  "center",
+                                                                           "cellOptions":  {
+                                                                                               "type":  "color-background"
+                                                                                           }
+                                                                       },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  99.5,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  99.9,
+                                                                                                 "color":  "green"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       },
+                       "options":  {
+                                       "showHeader":  true
+                                   }
+                   },
+                   {
+                       "id":  9,
+                       "type":  "stat",
+                       "title":  "Total Requests (7d)",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  6,
+                                       "x":  0,
+                                       "y":  22
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(increase(http_requests_total{job=\"demo-api-kubernetes\"}[1h]))",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "decimals":  0,
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "blue"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  10,
+                       "type":  "stat",
+                       "title":  "Failed Requests (7d)",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  6,
+                                       "x":  6,
+                                       "y":  22
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(increase(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h]))",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "decimals":  0,
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  100,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1000,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  11,
+                       "type":  "stat",
+                       "title":  "Error Budget Consumed",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  6,
+                                       "x":  12,
+                                       "y":  22
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "((sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h]))) / 0.001) * 100",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  1,
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  50,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  75,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  90,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  12,
+                       "type":  "stat",
+                       "title":  "Time Until Budget Exhausted",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  6,
+                                       "x":  18,
+                                       "y":  22
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(0.001 - (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h])))) / (sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[1h])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[1h]))) / 24",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "d",
+                                                            "decimals":  1,
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "orange"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  3,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  7,
+                                                                                                 "color":  "green"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   }
+               ],
+    "annotations":  {
+                        "list":  [
+                                     {
+                                         "builtIn":  1,
+                                         "datasource":  "Prometheus (Kubernetes)",
+                                         "enable":  true,
+                                         "hide":  false,
+                                         "iconColor":  "red",
+                                         "name":  "SLO Violations",
+                                         "type":  "dashboard"
+                                     }
+                                 ]
+                    }
+}

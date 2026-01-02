@@ -1,0 +1,18 @@
+name: PR Checklist enforcement
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure linked issue and changelog
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const hasIssue = /#\d+/.test(body);
+            if (!hasIssue) core.setFailed('PR body must reference an issue (e.g. #123)');

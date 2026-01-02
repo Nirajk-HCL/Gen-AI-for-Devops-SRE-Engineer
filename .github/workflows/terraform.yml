@@ -1,0 +1,35 @@
+name: Terraform PR checks
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform init
+        run: terraform -chdir=infra init -input=false
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+      - name: Terraform plan
+        id: plan
+        run: |
+          terraform -chdir=infra plan -no-color -out=tfplan || true
+      - name: Upload plan
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: infra/tfplan
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: infra/tfplan

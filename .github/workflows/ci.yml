@@ -1,0 +1,42 @@
+name: CI — PR checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop, 'feature/**' ]
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: .github/scripts/run-tests.sh
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run linter
+        run: .github/scripts/run-lint.sh
+
+  sast:
+    name: SAST — CodeQL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v2
+        with:
+          languages: 'auto'
+      - uses: github/codeql-action/analyze@v2
+
+  dast:
+    name: DAST — OWASP ZAP baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run DAST script
+        run: .github/scripts/run-dast.sh

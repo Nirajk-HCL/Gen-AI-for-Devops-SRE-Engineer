@@ -1,0 +1,28 @@
+name: Canary Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          docker build -t myregistry/myservice:${{ github.sha }} .
+      - name: Push image
+        run: |
+          echo "Placeholder: push to registry"
+
+  canary:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy canary (10%)
+        run: |
+          kubectl set image deployment/myservice myservice=myregistry/myservice:${{ github.sha }} --record || true
+          kubectl rollout status deployment/myservice --timeout=120s || true
+      - name: Wait & promote
+        run: |
+          echo "Wait for metrics/approval; promote to 100% after manual validation"

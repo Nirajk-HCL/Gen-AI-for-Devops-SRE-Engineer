@@ -1,0 +1,26 @@
+{
+  "name": "@modelcontextprotocol/server-kubernetes",
+  "version": "0.1.0",
+  "description": "Minimal MCP-style server to translate natural language to kubectl commands (safe scaffold)",
+  "bin": {
+    "mcp-k8s": "bin/cli.js"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint": "echo 'no-lint'"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nirajk-HCL/kubernetes-mcp-server.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2"
+  }
+}

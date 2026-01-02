@@ -1,0 +1,17 @@
+name: Terraform drift detection
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform plan (detailed-exitcode)
+        run: |
+          terraform -chdir=infra init -input=false
+          terraform -chdir=infra plan -detailed-exitcode -no-color || true

@@ -1,0 +1,638 @@
+{
+    "title":  "Incident Investigation Dashboard",
+    "tags":  [
+                 "incident",
+                 "troubleshooting",
+                 "investigation"
+             ],
+    "timezone":  "browser",
+    "schemaVersion":  38,
+    "version":  1,
+    "refresh":  "10s",
+    "time":  {
+                 "from":  "now-1h",
+                 "to":  "now"
+             },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "timeseries",
+                       "title":  "Error Rate Timeline (All Services)",
+                       "description":  "5xx errors across all API endpoints",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(http_requests_total{namespace=\"production\",code=~\"5..\"}[5m])) by (job)",
+                                           "legendFormat":  "{{job}}",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  2,
+                                                                           "fillOpacity":  20
+                                                                       }
+                                                        }
+                                       },
+                       "options":  {
+                                       "legend":  {
+                                                      "displayMode":  "list",
+                                                      "placement":  "bottom"
+                                                  }
+                                   }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "timeseries",
+                       "title":  "Request Rate by Status Code",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"2..\"}[5m]))",
+                                           "legendFormat":  "2xx Success",
+                                           "refId":  "A"
+                                       },
+                                       {
+                                           "expr":  "sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"4..\"}[5m]))",
+                                           "legendFormat":  "4xx Client Error",
+                                           "refId":  "B"
+                                       },
+                                       {
+                                           "expr":  "sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[5m]))",
+                                           "legendFormat":  "5xx Server Error",
+                                           "refId":  "C"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "timeseries",
+                       "title":  "Latency Heatmap (P50, P95, P99)",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "legendFormat":  "P50",
+                                           "refId":  "A"
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "legendFormat":  "P95",
+                                           "refId":  "B"
+                                       },
+                                       {
+                                           "expr":  "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "legendFormat":  "P99",
+                                           "refId":  "C"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  2
+                                                                       }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "timeseries",
+                       "title":  "CPU Usage by Pod",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(container_cpu_usage_seconds_total{namespace=\"production\",pod=~\"demo-api.*\",container=\"demo-api\"}[5m])) by (pod) * 100",
+                                           "legendFormat":  "{{pod}}",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  1,
+                                                                           "fillOpacity":  10
+                                                                       },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  60,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  80,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "timeseries",
+                       "title":  "Memory Usage by Pod",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(container_memory_working_set_bytes{namespace=\"production\",pod=~\"demo-api.*\",container=\"demo-api\"}) by (pod) / 1024 / 1024",
+                                           "legendFormat":  "{{pod}}",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "decmbytes",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      },
+                                                            "custom":  {
+                                                                           "lineWidth":  1,
+                                                                           "fillOpacity":  10
+                                                                       },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  100,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  120,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "stat",
+                       "title":  "Current Error Rate",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  0,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "(sum(rate(http_requests_total{job=\"demo-api-kubernetes\",code=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[5m]))) * 100",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  2,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  5,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  7,
+                       "type":  "stat",
+                       "title":  "Current P95 Latency",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  4,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"demo-api-kubernetes\"}[5m])) by (le)) * 1000",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ms",
+                                                            "decimals":  0,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  400,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  500,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  8,
+                       "type":  "stat",
+                       "title":  "Pods Running",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  8,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "count(up{job=\"demo-api-kubernetes\"} == 1)",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short",
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "red"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  3,
+                                                                                                 "color":  "green"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  9,
+                       "type":  "stat",
+                       "title":  "Avg CPU %",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  12,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "avg(rate(container_cpu_usage_seconds_total{namespace=\"production\",pod=~\"demo-api.*\",container=\"demo-api\"}[5m])) * 100",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent",
+                                                            "decimals":  1,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  60,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  80,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  10,
+                       "type":  "stat",
+                       "title":  "Avg Memory (MB)",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  16,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "avg(container_memory_working_set_bytes{namespace=\"production\",pod=~\"demo-api.*\",container=\"demo-api\"}) / 1024 / 1024",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "decmbytes",
+                                                            "decimals":  0,
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  100,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  120,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  11,
+                       "type":  "stat",
+                       "title":  "Request Rate",
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  4,
+                                       "x":  20,
+                                       "y":  24
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(http_requests_total{job=\"demo-api-kubernetes\"}[5m]))",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps",
+                                                            "decimals":  1,
+                                                            "color":  {
+                                                                          "mode":  "thresholds"
+                                                                      },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "blue"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  12,
+                       "type":  "table",
+                       "title":  "Recent Pod Restarts",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  28
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(kube_pod_container_status_restarts_total{namespace=\"production\",pod=~\"demo-api.*\"}) by (pod, container)",
+                                           "refId":  "A",
+                                           "format":  "table",
+                                           "instant":  true
+                                       }
+                                   ],
+                       "transformations":  [
+                                               {
+                                                   "id":  "organize",
+                                                   "options":  {
+                                                                   "excludeByName":  {
+                                                                                         "Time":  true
+                                                                                     },
+                                                                   "renameByName":  {
+                                                                                        "pod":  "Pod Name",
+                                                                                        "container":  "Container",
+                                                                                        "Value":  "Restart Count"
+                                                                                    }
+                                                               }
+                                               }
+                                           ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "custom":  {
+                                                                           "align":  "left"
+                                                                       },
+                                                            "thresholds":  {
+                                                                               "mode":  "absolute",
+                                                                               "steps":  [
+                                                                                             {
+                                                                                                 "value":  0,
+                                                                                                 "color":  "green"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  1,
+                                                                                                 "color":  "yellow"
+                                                                                             },
+                                                                                             {
+                                                                                                 "value":  3,
+                                                                                                 "color":  "red"
+                                                                                             }
+                                                                                         ]
+                                                                           }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  13,
+                       "type":  "logs",
+                       "title":  "Application Logs (Last 100 entries)",
+                       "description":  "Note: Requires Loki datasource for log aggregation",
+                       "gridPos":  {
+                                       "h":  6,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  28
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "{namespace=\"production\",pod=~\"demo-api.*\"}",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "options":  {
+                                       "showTime":  true,
+                                       "showLabels":  true,
+                                       "sortOrder":  "Descending"
+                                   }
+                   },
+                   {
+                       "id":  14,
+                       "type":  "timeseries",
+                       "title":  "Network Traffic (In/Out)",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  34
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(rate(container_network_receive_bytes_total{namespace=\"production\",pod=~\"demo-api.*\"}[5m])) by (pod)",
+                                           "legendFormat":  "{{pod}} - In",
+                                           "refId":  "A"
+                                       },
+                                       {
+                                           "expr":  "sum(rate(container_network_transmit_bytes_total{namespace=\"production\",pod=~\"demo-api.*\"}[5m])) by (pod)",
+                                           "legendFormat":  "{{pod}} - Out",
+                                           "refId":  "B"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "Bps",
+                                                            "color":  {
+                                                                          "mode":  "palette-classic"
+                                                                      }
+                                                        }
+                                       }
+                   },
+                   {
+                       "id":  15,
+                       "type":  "table",
+                       "title":  "Service Health Summary",
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  34
+                                   },
+                       "targets":  [
+                                       {
+                                           "expr":  "up{job=\"demo-api-kubernetes\"}",
+                                           "refId":  "A",
+                                           "format":  "table",
+                                           "instant":  true
+                                       }
+                                   ],
+                       "transformations":  [
+                                               {
+                                                   "id":  "organize",
+                                                   "options":  {
+                                                                   "renameByName":  {
+                                                                                        "pod":  "Pod",
+                                                                                        "Value":  "Status"
+                                                                                    }
+                                                               }
+                                               }
+                                           ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "custom":  {
+                                                                           "align":  "center",
+                                                                           "cellOptions":  {
+                                                                                               "type":  "color-background"
+                                                                                           }
+                                                                       },
+                                                            "mappings":  [
+                                                                             {
+                                                                                 "type":  "value",
+                                                                                 "options":  {
+                                                                                                 "0":  {
+                                                                                                           "text":  "Down",
+                                                                                                           "color":  "red"
+                                                                                                       },
+                                                                                                 "1":  {
+                                                                                                           "text":  "Up",
+                                                                                                           "color":  "green"
+                                                                                                       }
+                                                                                             }
+                                                                             }
+                                                                         ]
+                                                        }
+                                       }
+                   }
+               ],
+    "annotations":  {
+                        "list":  [
+                                     {
+                                         "builtIn":  1,
+                                         "datasource":  "Prometheus (Kubernetes)",
+                                         "enable":  true,
+                                         "hide":  false,
+                                         "iconColor":  "red",
+                                         "name":  "Alerts",
+                                         "type":  "dashboard"
+                                     }
+                                 ]
+                    }
+}

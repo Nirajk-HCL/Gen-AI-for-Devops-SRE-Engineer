@@ -1,0 +1,15 @@
+name: DAST (OWASP ZAP) placeholder
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dast:
+    runs-on: ubuntu-latest
+    name: dast
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OWASP ZAP baseline (placeholder)
+        run: |
+          echo "Install or configure OWASP ZAP in your environment."
+          echo "Run zap-baseline.py -t $DAST_TARGET"
